@@ -25,6 +25,7 @@ export interface ApprovalFilterBarProps<T extends string = string> {
   placeholder?: string;
   tabs?: ApprovalFilterTab<T>[];
   defaultStatus?: T;
+  children?: React.ReactNode;
 }
 
 const DEFAULT_TABS: ApprovalFilterTab[] = [
@@ -43,6 +44,7 @@ export function ApprovalFilterBar<T extends string = string>({
   placeholder = "Search by student name or register number...",
   tabs = DEFAULT_TABS as ApprovalFilterTab<T>[],
   defaultStatus = "pending" as T,
+  children,
 }: ApprovalFilterBarProps<T>) {
   const isFiltered = search.trim().length > 0 || statusFilter !== defaultStatus;
 
@@ -52,7 +54,7 @@ export function ApprovalFilterBar<T extends string = string>({
   };
 
   return (
-    <div className="nd-filter-bar" role="search" aria-label="Filter approvals">
+    <div className="nd-filter-bar" role="search" aria-label="Filter approvals" style={{ flexWrap: "wrap", gap: 12 }}>
       <div className="nd-filter-tabs" role="tablist" aria-label="Filter by decision status">
         {tabs.map((tab) => {
           const isActive = statusFilter === tab.key;
@@ -99,6 +101,8 @@ export function ApprovalFilterBar<T extends string = string>({
             </button>
           )}
         </div>
+
+        {children}
 
         {isFiltered && (
           <button

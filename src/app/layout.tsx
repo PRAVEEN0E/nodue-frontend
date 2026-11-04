@@ -16,18 +16,18 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   metadataBase: new URL(APP_URL),
   title: {
-    default: "NoDue Platform — Online Student No Due Clearance Portal (NDCP)",
-    template: "%s | NoDue Platform",
+    default: "Vcet No Due Clearance Portal",
+    template: "%s | Vcet No Due Clearance Portal",
   },
   description:
-    "NoDue Platform (NDCP) — Official academic no due clearance portal for colleges and universities. Automate student clearances, departmental sign-offs, and hall ticket approvals online.",
-  applicationName: "NoDue Platform",
+    "Vcet No Due Clearance Portal — Official academic no due clearance portal for VCET. Automate student clearances, departmental sign-offs, fee verifications, and hall ticket approvals online.",
+  applicationName: "Vcet No Due Clearance Portal",
   keywords: [
-    "NoDue",
-    "NoDue Platform",
-    "NoDue portal",
-    "NoDue clearance",
-    "NDCP No Due",
+    "VCET",
+    "VCET No Due",
+    "Vcet No Due Clearance Portal",
+    "VCET portal",
+    "VCET clearance",
     "No Due Clearance Portal",
     "online student no due clearance",
     "college no due certificate online",
@@ -37,9 +37,9 @@ export const metadata: Metadata = {
     "hall ticket clearance portal",
     "One Portal Zero Pending",
   ],
-  authors: [{ name: "NoDue Team" }],
-  creator: "NoDue Academic Platform",
-  publisher: "NoDue Platform",
+  authors: [{ name: "VCET Team" }],
+  creator: "VCET Academic Platform",
+  publisher: "VCET",
   verification: {
     google: "7mRLU3RClqs7gIZx9zoQL6DrMrjfo__SR5zfr_-5Om8",
   },
@@ -47,16 +47,16 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_US",
     url: APP_URL,
-    siteName: "NoDue Platform — Academic Clearance Portal",
-    title: "NoDue Platform — Online Student No Due Clearance Portal (NDCP)",
+    siteName: "Vcet No Due Clearance Portal",
+    title: "Vcet No Due Clearance Portal",
     description:
-      "NoDue Platform (NDCP) — Automate student clearances, departmental sign-offs, and academic administrative workflows online. One Portal. Zero Pending.",
+      "Vcet No Due Clearance Portal — Automate student clearances, departmental sign-offs, and academic administrative workflows online. One Portal. Zero Pending.",
   },
   twitter: {
     card: "summary_large_image",
-    title: "NoDue Platform — Online Student No Due Clearance Portal (NDCP)",
+    title: "Vcet No Due Clearance Portal",
     description:
-      "NoDue Platform (NDCP) — Automate student clearances, departmental sign-offs, and academic administrative workflows online.",
+      "Vcet No Due Clearance Portal — Automate student clearances, departmental sign-offs, and academic administrative workflows online.",
   },
   robots: {
     index: true,
@@ -77,12 +77,12 @@ export const metadata: Metadata = {
 const jsonLd = {
   "@context": "https://schema.org",
   "@type": "WebApplication",
-  name: "NoDue Platform - Academic Clearance Portal (NDCP)",
+  name: "Vcet No Due Clearance Portal",
   applicationCategory: "EducationalApplication",
   operatingSystem: "Web",
   url: APP_URL,
   description:
-    "NoDue Platform (NDCP) — One Portal. Zero Pending. Next-generation academic clearance and management platform for colleges and universities to automate student sign-offs and approvals.",
+    "Vcet No Due Clearance Portal — One Portal. Zero Pending. Next-generation academic clearance and management platform for VCET to automate student sign-offs and approvals.",
   offers: {
     "@type": "Offer",
     price: "0",

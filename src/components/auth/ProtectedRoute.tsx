@@ -18,6 +18,8 @@ export function getRoleHome(role?: string | null): string {
       return "/staff";
     case "STUDENT":
       return "/student";
+    case "CASHIER":
+      return "/cashier";
     default:
       return "/login";
   }

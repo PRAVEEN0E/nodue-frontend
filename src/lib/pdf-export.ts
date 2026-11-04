@@ -1,4 +1,4 @@
-// ─── NDCP PDF Export Utility ────────────────────────────────────────────────
+// ─── VCET PDF Export Utility ────────────────────────────────────────────────
 // Generates branded, properly-formatted PDF reports using jsPDF + jspdf-autotable.
 // All generation happens client-side — no backend changes required.
 
@@ -102,9 +102,9 @@ export function generatePdfReport(options: PdfReportOptions): void {
   doc.setFillColor(...(type === "defaulters" ? PALETTE.red : PALETTE.blue));
   doc.circle(margin + 7, 14, 7, "F");
   doc.setTextColor(...PALETTE.white);
-  doc.setFontSize(8);
+  doc.setFontSize(7.5);
   doc.setFont("helvetica", "bold");
-  doc.text("NDCP", margin + 7, 14.8, { align: "center" });
+  doc.text("VCET", margin + 7, 14.8, { align: "center" });
 
   // Title
   doc.setFontSize(15);
@@ -116,7 +116,7 @@ export function generatePdfReport(options: PdfReportOptions): void {
   doc.setFontSize(8.5);
   doc.setFont("helvetica", "normal");
   doc.setTextColor(180, 195, 215);
-  doc.text(`No Due Clearance Portal  ·  ${subtitle}`, margin + 18, 19.5);
+  doc.text(`Vcet No Due Clearance Portal  ·  ${subtitle}`, margin + 18, 19.5);
 
   // Generated timestamp (right-aligned)
   const now = new Date();
@@ -193,7 +193,7 @@ export function generatePdfReport(options: PdfReportOptions): void {
       doc.setFontSize(7);
       doc.setTextColor(...PALETTE.slate);
       doc.setFont("helvetica", "normal");
-      doc.text("NDCP — No Due Clearance Portal · Confidential Academic Document", margin, pageH - 4);
+      doc.text("VCET — Vcet No Due Clearance Portal · Confidential Academic Document", margin, pageH - 4);
       doc.text(`Page ${pageNum} of ${totalPages}`, pageW - margin, pageH - 4, { align: "right" });
 
       // Colour accent stripe at bottom

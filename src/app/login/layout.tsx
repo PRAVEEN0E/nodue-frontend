@@ -3,16 +3,16 @@ import type { Metadata } from "next";
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://nodue-platform.vercel.app";
 
 export const metadata: Metadata = {
-  title: "Sign In | NoDue Platform — Academic Clearance Portal",
+  title: "Sign In | Vcet No Due Clearance Portal",
   description:
-    "Sign in to NoDue Platform (NDCP) — One Portal. Zero Pending. Secure clearance access for students, staff, advisors, and HODs.",
+    "Sign in to Vcet No Due Clearance Portal — One Portal. Zero Pending. Secure clearance access for students, staff, advisors, HODs, and cashier.",
   alternates: {
     canonical: `${APP_URL}/login`,
   },
   openGraph: {
-    title: "Sign In | NoDue Platform — Academic Clearance Portal",
+    title: "Sign In | Vcet No Due Clearance Portal",
     description:
-      "NoDue Platform (NDCP) — One Portal. Zero Pending. Secure sign-in for students, faculty advisors, department heads, and academic staff.",
+      "Vcet No Due Clearance Portal — One Portal. Zero Pending. Secure sign-in for students, faculty advisors, department heads, cashier, and academic staff.",
     url: `${APP_URL}/login`,
   },
 };

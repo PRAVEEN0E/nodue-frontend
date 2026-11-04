@@ -4,8 +4,10 @@ import React, { useEffect, useState, useCallback } from "react";
 import {
   getAdvisorStaff,
   getAdvisorStaffAvailable,
+  getDepartmentsList,
   AdvisorStaff,
   AdvisorAvailableStaff,
+  AdvisorDepartmentOption,
 } from "@/lib/advisor-api";
 import { ApiError } from "@/lib/api";
 import { Search, RefreshCw, ArrowRight } from "lucide-react";
@@ -22,16 +24,22 @@ export default function AdvisorStaffPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
+  const [deptFilter, setDeptFilter] = useState("");
+  const [allDepts, setAllDepts] = useState<AdvisorDepartmentOption[]>([]);
 
   const load = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
       const term = search.trim() || undefined;
-      const [availRes, assignedRes] = await Promise.all([
+      const [availRes, assignedRes, depts] = await Promise.all([
         getAdvisorStaffAvailable({ page: 1, limit: 100, search: term }),
         getAdvisorStaff({ page: 1, limit: 100, search: term }),
+        allDepts.length === 0 ? getDepartmentsList() : Promise.resolve(allDepts),
       ]);
+      if (allDepts.length === 0 && depts) {
+        setAllDepts(depts);
+      }
       setAvailable(availRes.data);
       setAssigned(assignedRes.data);
     } catch (err) {
@@ -39,7 +47,31 @@ export default function AdvisorStaffPage() {
     } finally {
       setLoading(false);
     }
-  }, [search]);
+  }, [search, allDepts]);
+
+  const departments = React.useMemo(() => {
+    const map = new Map<string, { id: string; code: string; name: string }>();
+    for (const d of allDepts) {
+      map.set(d.id, d);
+    }
+    for (const s of available) {
+      if (s.department?.id) map.set(s.department.id, s.department);
+    }
+    for (const s of assigned) {
+      if (s.department?.id) map.set(s.department.id, s.department);
+    }
+    return Array.from(map.values()).sort((a, b) => a.code.localeCompare(b.code));
+  }, [allDepts, available, assigned]);
+
+  const filteredAvailable = React.useMemo(() => {
+    if (!deptFilter) return available;
+    return available.filter((s) => s.department?.id === deptFilter);
+  }, [available, deptFilter]);
+
+  const filteredAssigned = React.useMemo(() => {
+    if (!deptFilter) return assigned;
+    return assigned.filter((s) => s.department?.id === deptFilter);
+  }, [assigned, deptFilter]);
 
   useEffect(() => {
     const t = setTimeout(load, search ? 300 : 0);
@@ -65,6 +97,20 @@ export default function AdvisorStaffPage() {
             aria-label="Search staff"
           />
         </div>
+        <select
+          className="nd-select"
+          style={{ width: "auto", minWidth: 160 }}
+          value={deptFilter}
+          onChange={(e) => setDeptFilter(e.target.value)}
+          aria-label="Filter staff by department"
+        >
+          <option value="">All Departments</option>
+          {departments.map((d) => (
+            <option key={d.id} value={d.id}>
+              {d.code} · {d.name}
+            </option>
+          ))}
+        </select>
         <Button variant="secondary" onClick={load} aria-label="Refresh list">
           <RefreshCw style={{ width: 14, height: 14 }} />
         </Button>
@@ -85,14 +131,18 @@ export default function AdvisorStaffPage() {
             description="Existing staff college-wide who are eligible for assignment. Map them to specific subjects on the Subjects page."
             actions={<LinkButton href="/advisor/subjects" variant="secondary" size="sm">Open Subjects <ArrowRight style={{ width: 14, height: 14 }} /></LinkButton>}
           >
-            {available.length === 0 ? (
+            {filteredAvailable.length === 0 ? (
               <EmptyState
-                title="No staff available"
-                description="Staff members created by the administrator will appear here when they are available for assignment."
+                title={deptFilter ? "No staff found in this department" : "No staff available"}
+                description={
+                  deptFilter
+                    ? "Try selecting another department or clearing the filter."
+                    : "Staff members created by the administrator will appear here when they are available for assignment."
+                }
               />
             ) : (
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                {available.map((s) => (
+                {filteredAvailable.map((s) => (
                   <div key={s.id} className="nd-def-row">
                     <div className="nd-user-cell">
                       <div className="nd-avatar" aria-hidden="true">
@@ -119,10 +169,14 @@ export default function AdvisorStaffPage() {
             title="Assigned Staff"
             description="Staff adopted into your classroom. Subject-level assignment is managed on the Subjects page."
           >
-            {assigned.length === 0 ? (
+            {filteredAssigned.length === 0 ? (
               <EmptyState
-                title="No assigned staff"
-                description="Map staff to subjects on the Subjects page to assign them to your classroom."
+                title={deptFilter ? "No assigned staff in this department" : "No assigned staff"}
+                description={
+                  deptFilter
+                    ? "Try selecting another department or clearing the filter."
+                    : "Map staff to subjects on the Subjects page to assign them to your classroom."
+                }
               />
             ) : (
               <div className="nd-table-scroll">
@@ -130,13 +184,14 @@ export default function AdvisorStaffPage() {
                   <thead>
                     <tr>
                       <th>Staff</th>
+                      <th>Department</th>
                       <th>Employee ID</th>
                       <th>Status</th>
                       <th>Classroom Subjects</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {assigned.map((s) => (
+                    {filteredAssigned.map((s) => (
                       <tr key={s.id}>
                         <td>
                           <div className="nd-user-cell">
@@ -148,6 +203,9 @@ export default function AdvisorStaffPage() {
                               <div className="nd-cell-secondary">{s.designation}</div>
                             </div>
                           </div>
+                        </td>
+                        <td>
+                          {s.department ? <Badge tone="info">{s.department.code}</Badge> : <span className="nd-cell-secondary">—</span>}
                         </td>
                         <td className="nd-cell-secondary" style={{ fontFamily: "monospace", fontSize: 12.5 }}>{s.employeeCode}</td>
                         <td>

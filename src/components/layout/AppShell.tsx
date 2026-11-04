@@ -64,7 +64,7 @@ export default function AppShell({
       activeItem?.label ||
       (crumbs.length > 0 ? formatCrumb(crumbs[crumbs.length - 1]) : workspace);
     if (typeof document !== "undefined") {
-      document.title = `${titleText} | NoDue Platform`;
+      document.title = `${titleText} | Vcet No Due Clearance Portal`;
     }
   }, [pathname, nav, crumbs, workspace]);
 
@@ -94,8 +94,8 @@ export default function AppShell({
               <GraduationCap style={{ width: 20, height: 20 }} />
             </div>
             <div>
-              <div className="nd-brand-name">NDCP</div>
-              <div className="nd-brand-sub">No Due Clearance Portal</div>
+              <div className="nd-brand-name">VCET</div>
+              <div className="nd-brand-sub">Vcet No Due Clearance Portal</div>
             </div>
             <button
               className="nd-icon-btn nd-sidebar-close"

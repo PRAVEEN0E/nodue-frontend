@@ -13,7 +13,7 @@ import type { NextRequest } from "next/server";
 function getRoleFromSession(session: string | undefined): string | null {
   if (!session) return null;
   const role = session.trim().toUpperCase();
-  const validRoles = ["ADMIN", "HOD", "ADVISOR", "STAFF", "STUDENT"];
+  const validRoles = ["ADMIN", "HOD", "ADVISOR", "STAFF", "STUDENT", "CASHIER"];
   return validRoles.includes(role) ? role : null;
 }
 
@@ -24,11 +24,12 @@ function getRoleHome(role: string | null): string {
     case "ADVISOR": return "/advisor";
     case "STAFF": return "/staff";
     case "STUDENT": return "/student";
+    case "CASHIER": return "/cashier";
     default: return "/login";
   }
 }
 
-const ROLE_PATHS = ["admin", "hod", "advisor", "staff", "student"];
+const ROLE_PATHS = ["admin", "hod", "advisor", "staff", "student", "cashier"];
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;

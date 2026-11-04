@@ -169,6 +169,7 @@ export interface AdvisorStaff {
     role: string;
     isActive: boolean;
   };
+  department?: { id: string; code: string; name: string };
   subjectStaff: Array<{ subject: AdvisorStaffSubject }>;
 }
 
@@ -238,6 +239,7 @@ export interface AdvisorMappedStaff {
   employeeCode: string;
   designation: string;
   user: { id: string; firstName: string; lastName: string; email: string; isActive: boolean };
+  department?: { id: string; code: string; name: string };
 }
 
 export interface AdvisorSubject {
@@ -483,4 +485,22 @@ export async function getAdvisorStudentStatus(studentId: string): Promise<Studen
   );
   return res.data;
 }
+
+// ─── Departments ─────────────────────────────────────────────────────────────
+
+export interface AdvisorDepartmentOption {
+  id: string;
+  code: string;
+  name: string;
+}
+
+export async function getDepartmentsList(): Promise<AdvisorDepartmentOption[]> {
+  try {
+    const res = await apiClient<{ success: boolean; data: AdvisorDepartmentOption[] }>("/departments");
+    return res.data;
+  } catch {
+    return [];
+  }
+}
+
 

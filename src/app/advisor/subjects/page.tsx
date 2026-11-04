@@ -10,9 +10,11 @@ import {
   getAdvisorStaffAvailable,
   mapStaffToSubject,
   unmapStaffFromSubject,
+  getDepartmentsList,
   AdvisorSubject,
   AdvisorStaff,
   AdvisorAvailableStaff,
+  AdvisorDepartmentOption,
 } from "@/lib/advisor-api";
 import { ApiError } from "@/lib/api";
 import { Plus, Search, RefreshCw, X, UploadCloud } from "lucide-react";
@@ -45,6 +47,8 @@ export default function AdvisorSubjectsPage() {
 
   const [detail, setDetail] = useState<AdvisorSubject | null>(null);
   const [staffOptions, setStaffOptions] = useState<Array<AdvisorAvailableStaff | AdvisorStaff>>([]);
+  const [selectedDept, setSelectedDept] = useState("");
+  const [allDepts, setAllDepts] = useState<AdvisorDepartmentOption[]>([]);
   const [assignId, setAssignId] = useState("");
   const [assigning, setAssigning] = useState(false);
   const [mapError, setMapError] = useState<string | null>(null);
@@ -123,15 +127,20 @@ export default function AdvisorSubjectsPage() {
   const openDetail = async (id: string) => {
     setMapError(null);
     setAssignId("");
+    setSelectedDept("");
     try {
       // Candidates = eligible unassigned staff (available) + staff already
       // adopted into this classroom (assigned), deduped. No creating here:
       // admin owns staff accounts; advisors only assign existing staff.
-      const [subject, availRes, assignedRes] = await Promise.all([
+      const [subject, availRes, assignedRes, depts] = await Promise.all([
         getAdvisorSubjectById(id),
         getAdvisorStaffAvailable({ page: 1, limit: 100 }),
         getAdvisorStaff({ page: 1, limit: 100 }),
+        allDepts.length === 0 ? getDepartmentsList() : Promise.resolve(allDepts),
       ]);
+      if (allDepts.length === 0 && depts) {
+        setAllDepts(depts);
+      }
       setDetail(subject);
       const merged: Array<AdvisorAvailableStaff | AdvisorStaff> = [
         ...availRes.data,
@@ -142,6 +151,31 @@ export default function AdvisorSubjectsPage() {
       setError(err instanceof ApiError ? err.message : "Failed to load subject.");
     }
   };
+
+  const departments = React.useMemo(() => {
+    const map = new Map<string, { id: string; code: string; name: string }>();
+    for (const d of allDepts) {
+      map.set(d.id, d);
+    }
+    for (const st of staffOptions) {
+      if ("department" in st && st.department?.id) {
+        map.set(st.department.id, st.department);
+      }
+    }
+    return Array.from(map.values()).sort((a, b) => a.code.localeCompare(b.code));
+  }, [allDepts, staffOptions]);
+
+  const availableStaffForDetail = React.useMemo(() => {
+    if (!detail) return [];
+    return staffOptions.filter((st) => !detail.subjectStaff.some((m) => m.staff.id === st.id));
+  }, [detail, staffOptions]);
+
+  const filteredStaffOptions = React.useMemo(() => {
+    if (!selectedDept) return availableStaffForDetail;
+    return availableStaffForDetail.filter(
+      (st) => "department" in st && st.department?.id === selectedDept
+    );
+  }, [availableStaffForDetail, selectedDept]);
 
   const refreshDetail = async (id: string) => {
     const subject = await getAdvisorSubjectById(id);
@@ -376,6 +410,7 @@ export default function AdvisorSubjectsPage() {
                 <div className="nd-def-row" key={staff.id}>
                   <span className="nd-def-label">
                     {staff.user.firstName} {staff.user.lastName} · {staff.employeeCode}
+                    {staff.department ? ` · ${staff.department.code}` : ""}
                   </span>
                   <span className="nd-def-value">
                     <Button variant="ghost" size="sm" onClick={() => handleUnmap(staff.id)} aria-label={`Remove ${staff.user.firstName}`}>
@@ -389,8 +424,27 @@ export default function AdvisorSubjectsPage() {
           <div>
             <span className="nd-label">Assign staff</span>
             {mapError && <div className="nd-alert nd-alert-error" role="alert" style={{ marginBottom: 10 }}><span>{mapError}</span></div>}
-            <form onSubmit={handleAssign} style={{ display: "flex", gap: 8 }}>
-              <div style={{ flex: 1 }}>
+            <form onSubmit={handleAssign} style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+              <div style={{ flex: "1 1 170px", minWidth: 150 }}>
+                <select
+                  className="nd-select"
+                  value={selectedDept}
+                  onChange={(e) => {
+                    setSelectedDept(e.target.value);
+                    setAssignId("");
+                  }}
+                  aria-label="Filter staff by department"
+                  style={{ width: "100%" }}
+                >
+                  <option value="">All Departments</option>
+                  {departments.map((d) => (
+                    <option key={d.id} value={d.id}>
+                      {d.code} · {d.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div style={{ flex: "2 1 220px", minWidth: 180 }}>
                 <select
                   className="nd-select"
                   value={assignId}
@@ -398,17 +452,21 @@ export default function AdvisorSubjectsPage() {
                   aria-label="Select staff to assign"
                   style={{ width: "100%" }}
                 >
-                  <option value="">Select staff member…</option>
-{staffOptions
-                    .filter((st) => !detail.subjectStaff.some((m) => m.staff.id === st.id))
-                    .map((st) => (
-                      <option key={st.id} value={st.id}>
-                        {staffOptionLabel(st)}
-                      </option>
-                    ))}
+                  <option value="">
+                    {filteredStaffOptions.length === 0
+                      ? selectedDept
+                        ? "No staff available in this department"
+                        : "Select staff member…"
+                      : "Select staff member…"}
+                  </option>
+                  {filteredStaffOptions.map((st) => (
+                    <option key={st.id} value={st.id}>
+                      {staffOptionLabel(st)}
+                    </option>
+                  ))}
                 </select>
               </div>
-              <Button type="submit" disabled={!assignId || assigning}>
+              <Button type="submit" disabled={!assignId || assigning} style={{ flexShrink: 0 }}>
                 {assigning && <ButtonSpinner />}
                 Assign
               </Button>

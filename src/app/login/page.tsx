@@ -56,8 +56,8 @@ export default function LoginPage() {
             <GraduationCap style={{ width: 22, height: 22 }} />
           </div>
           <div>
-            <div className="nd-brand-name">NDCP</div>
-            <div className="nd-brand-sub">No Due Clearance Portal</div>
+            <div className="nd-brand-name">VCET</div>
+            <div className="nd-brand-sub">Vcet No Due Clearance Portal</div>
           </div>
         </div>
 

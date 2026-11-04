@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useCallback } from "react";
-import { getStaffApprovals, PendingPair, DecidedApproval, DecisionStatus, decideApproval } from "@/lib/staff-api";
+import { getStaffApprovals, getStaffSubjects, PendingPair, DecidedApproval, DecisionStatus, decideApproval, StaffSubject } from "@/lib/staff-api";
 import { ApiError } from "@/lib/api";
 import { Search, RefreshCw, Check, X } from "lucide-react";
 import { PageHeader, Badge, Button, Input } from "@/components/ui/controls";
@@ -24,6 +24,8 @@ export default function StaffApprovalsPage() {
   const [error, setError] = useState<string | null>(null);
 
   const [search, setSearch] = useState("");
+  const [subjectFilter, setSubjectFilter] = useState("");
+  const [subjects, setSubjects] = useState<Array<{ id: string; code: string; name: string }>>([]);
   const [statusFilter, setStatusFilter] = useState<"pending" | "approved" | "rejected" | "decided">("pending");
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -34,14 +36,22 @@ export default function StaffApprovalsPage() {
   const [submitting, setSubmitting] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
 
-  const fetchTabCounts = useCallback(async (searchQuery: string) => {
+  // Load staff assigned subjects for filtering
+  useEffect(() => {
+    getStaffSubjects({ page: 1, limit: 100 })
+      .then((res) => setSubjects(res.data.map((s) => ({ id: s.id, code: s.code, name: s.name }))))
+      .catch(() => setSubjects([]));
+  }, []);
+
+  const fetchTabCounts = useCallback(async (searchQuery: string, subId: string) => {
     try {
       const q = searchQuery || undefined;
+      const sId = subId || undefined;
       const [p, a, r, d] = await Promise.all([
-        getStaffApprovals({ status: "pending", limit: 1, search: q }),
-        getStaffApprovals({ status: "approved", limit: 1, search: q }),
-        getStaffApprovals({ status: "rejected", limit: 1, search: q }),
-        getStaffApprovals({ status: "decided", limit: 1, search: q }),
+        getStaffApprovals({ status: "pending", limit: 1, search: q, subjectId: sId }),
+        getStaffApprovals({ status: "approved", limit: 1, search: q, subjectId: sId }),
+        getStaffApprovals({ status: "rejected", limit: 1, search: q, subjectId: sId }),
+        getStaffApprovals({ status: "decided", limit: 1, search: q, subjectId: sId }),
       ]);
       setCounts({
         pending: p.meta.total,
@@ -63,17 +73,18 @@ export default function StaffApprovalsPage() {
         page: currentPage,
         limit: 20,
         search: searchQuery || undefined,
+        subjectId: subjectFilter || undefined,
         status: statusFilter,
       });
       setRows(res.data);
       setMeta(res.meta);
-      fetchTabCounts(searchQuery);
+      fetchTabCounts(searchQuery, subjectFilter);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Failed to load approvals.");
     } finally {
       setLoading(false);
     }
-  }, [currentPage, search, statusFilter, fetchTabCounts]);
+  }, [currentPage, search, subjectFilter, statusFilter, fetchTabCounts]);
 
   useEffect(() => {
     const t = setTimeout(load, search ? 300 : 0);
@@ -148,7 +159,25 @@ export default function StaffApprovalsPage() {
           setCurrentPage(1);
         }}
         counts={counts}
-      />
+      >
+        <select
+          className="nd-select"
+          style={{ width: "auto", minWidth: 170 }}
+          value={subjectFilter}
+          onChange={(e) => {
+            setSubjectFilter(e.target.value);
+            setCurrentPage(1);
+          }}
+          aria-label="Filter by subject"
+        >
+          <option value="">All My Subjects</option>
+          {subjects.map((s) => (
+            <option key={s.id} value={s.id}>
+              {s.code} · {s.name}
+            </option>
+          ))}
+        </select>
+      </ApprovalFilterBar>
 
       {error && !loading && (
         <div className="nd-card" style={{ marginBottom: 16 }}>
