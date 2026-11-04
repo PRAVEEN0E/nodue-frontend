@@ -25,20 +25,23 @@ export interface PdfReportOptions {
 // ─── Colour palette ──────────────────────────────────────────────────────────
 
 const PALETTE = {
-  navy: [15, 23, 42] as [number, number, number],       // #0f172a
-  blue: [29, 78, 216] as [number, number, number],       // #1d4ed8
-  purple: [109, 40, 217] as [number, number, number],    // #6d28d9
-  red: [220, 38, 38] as [number, number, number],        // #dc2626
-  green: [22, 163, 74] as [number, number, number],      // #16a34a
-  amber: [217, 119, 6] as [number, number, number],      // #d97706
-  slate: [100, 116, 139] as [number, number, number],    // #64748b
-  border: [226, 232, 240] as [number, number, number],   // #e2e8f0
-  rowAlt: [248, 250, 252] as [number, number, number],   // #f8fafc
+  navy: [15, 23, 42] as [number, number, number],         // #0f172a
+  navyLight: [30, 41, 59] as [number, number, number],    // #1e293b
+  blue: [29, 78, 216] as [number, number, number],        // #1d4ed8
+  blueLight: [239, 246, 255] as [number, number, number], // #eff6ff
+  red: [220, 38, 38] as [number, number, number],         // #dc2626
+  redLight: [254, 242, 242] as [number, number, number],  // #fef2f2
+  green: [22, 163, 74] as [number, number, number],       // #16a34a
+  greenLight: [240, 253, 244] as [number, number, number],// #f0fdf4
+  amber: [217, 119, 6] as [number, number, number],       // #d97706
+  amberLight: [254, 243, 199] as [number, number, number],// #fef3c7
+  slate: [100, 116, 139] as [number, number, number],     // #64748b
+  slateDark: [51, 65, 85] as [number, number, number],    // #334155
+  border: [226, 232, 240] as [number, number, number],    // #e2e8f0
+  rowAlt: [248, 250, 252] as [number, number, number],    // #f8fafc
   white: [255, 255, 255] as [number, number, number],
-  headerBg: [15, 23, 42] as [number, number, number],   // navy header
+  gold: [202, 138, 4] as [number, number, number],
 };
-
-// ─── Status → colour mapping ─────────────────────────────────────────────────
 
 function statusColor(val: string): [number, number, number] | null {
   const v = val.trim().toUpperCase();
@@ -94,46 +97,96 @@ export function generatePdfReport(options: PdfReportOptions): void {
   const margin = 14;
   const contentW = pageW - margin * 2;
 
-  // ─── Header band ─────────────────────────────────────────────────────────
+  // 1. Institution Header Bar
   doc.setFillColor(...PALETTE.navy);
-  doc.rect(0, 0, pageW, 28, "F");
+  doc.rect(0, 0, pageW, 34, "F");
 
-  // Logo circle
+  // Subtle golden accent stripe below top banner
+  doc.setFillColor(59, 130, 246);
+  doc.rect(0, 34, pageW, 1.5, "F");
+
+  // College Emblem / Crest Placeholder Badge
   doc.setFillColor(...(type === "defaulters" ? PALETTE.red : PALETTE.blue));
-  doc.circle(margin + 7, 14, 7, "F");
+  doc.roundedRect(margin, 6, 22, 22, 3, 3, "F");
   doc.setTextColor(...PALETTE.white);
-  doc.setFontSize(7.5);
+  doc.setFontSize(10);
   doc.setFont("helvetica", "bold");
-  doc.text("VCET", margin + 7, 14.8, { align: "center" });
+  doc.text("VCET", margin + 11, 19, { align: "center" });
 
-  // Title
-  doc.setFontSize(15);
+  // College Name & University Affiliation
+  doc.setFontSize(13);
   doc.setFont("helvetica", "bold");
   doc.setTextColor(...PALETTE.white);
-  doc.text(title, margin + 18, 12);
+  doc.text("VELALAR COLLEGE OF ENGINEERING & TECHNOLOGY", margin + 27, 12);
 
-  // Subtitle
+  doc.setFontSize(8);
+  doc.setFont("helvetica", "normal");
+  doc.setTextColor(191, 219, 254); // blue-200
+  doc.text("AUTONOMOUS INSTITUTION · AFFILIATED TO ANNA UNIVERSITY · ACCREDITED BY NAAC & NBA", margin + 27, 17);
+
+  // Document Title
+  doc.setFontSize(11);
+  doc.setFont("helvetica", "bold");
+  doc.setTextColor(248, 250, 252);
+  doc.text(`${title.toUpperCase()} — NO DUE CLEARANCE PORTAL`, margin + 27, 23);
+
+  // Subtitle / Classroom metadata
   doc.setFontSize(8.5);
   doc.setFont("helvetica", "normal");
-  doc.setTextColor(180, 195, 215);
-  doc.text(`Vcet No Due Clearance Portal  ·  ${subtitle}`, margin + 18, 19.5);
+  doc.setTextColor(148, 163, 184); // slate-400
+  doc.text(subtitle, margin + 27, 29);
 
-  // Generated timestamp (right-aligned)
+  // Date and Time (Right aligned in top banner)
   const now = new Date();
-  const stamp = `Generated: ${now.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })}  ${now.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })}`;
-  doc.setFontSize(7.5);
-  doc.setTextColor(160, 180, 210);
-  doc.text(stamp, pageW - margin, 19.5, { align: "right" });
+  const dateFormatted = now.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
+  const timeFormatted = now.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" });
 
-  // Summary pill
-  const cleared = rows.filter((r) => r.some((c) => c.toUpperCase() === "CLEARED" || c.toUpperCase() === "APPROVED")).length;
+  doc.setFontSize(8);
+  doc.setTextColor(203, 213, 225);
+  doc.text(`DATE: ${dateFormatted}`, pageW - margin, 13, { align: "right" });
+  doc.text(`TIME: ${timeFormatted}`, pageW - margin, 18, { align: "right" });
+
+  // Report Category Pill on top right
+  const isDefaulters = type === "defaulters";
+  const pillColor: [number, number, number] = isDefaulters ? [185, 28, 28] : [30, 64, 175];
+  doc.setFillColor(...pillColor);
+  doc.roundedRect(pageW - margin - 42, 22, 42, 7, 1.5, 1.5, "F");
+  doc.setTextColor(...PALETTE.white);
+  doc.setFontSize(7.5);
+  doc.setFont("helvetica", "bold");
+  doc.text(isDefaulters ? "DEFAULTER AUDIT" : "OFFICIAL CLEARANCE", pageW - margin - 21, 26.6, { align: "center" });
+
+  // 2. Summary KPI Ribbon
   const total = rows.length;
-  doc.setFontSize(7.5);
-  doc.setTextColor(180, 195, 215);
-  doc.text(`${total} record${total !== 1 ? "s" : ""}  ·  ${cleared} cleared`, pageW - margin, 12, { align: "right" });
+  const cleared = rows.filter((r) => r.some((c) => c.toUpperCase() === "CLEARED" || c.toUpperCase() === "APPROVED")).length;
+  const pending = total - cleared;
 
-  // ─── Table ───────────────────────────────────────────────────────────────
+  doc.setFillColor(...PALETTE.rowAlt);
+  doc.setDrawColor(...PALETTE.border);
+  doc.setLineWidth(0.3);
+  doc.roundedRect(margin, 38, contentW, 11, 1.5, 1.5, "FD");
 
+  doc.setFontSize(8.5);
+  doc.setTextColor(...PALETTE.slateDark);
+  doc.setFont("helvetica", "normal");
+  doc.text("EXECUTIVE SUMMARY:", margin + 4, 45);
+
+  doc.setFont("helvetica", "bold");
+  doc.setTextColor(...PALETTE.navy);
+  doc.text(`Total Students: ${total}`, margin + 42, 45);
+
+  doc.setTextColor(...PALETTE.green);
+  doc.text(`Cleared: ${cleared}`, margin + 85, 45);
+
+  doc.setTextColor(...(pending > 0 ? PALETTE.red : PALETTE.slate));
+  doc.text(`Pending / Defaulters: ${pending}`, margin + 120, 45);
+
+  doc.setFont("helvetica", "normal");
+  doc.setTextColor(...PALETTE.slate);
+  doc.setFontSize(8);
+  doc.text("Authority: Faculty Advisor & Head of Department", pageW - margin - 4, 45, { align: "right" });
+
+  // 3. Data Table
   const tableBody: RowInput[] = rows.map((row) =>
     row.map((cell): CellDef => {
       const color = statusColor(cell);
@@ -153,15 +206,15 @@ export function generatePdfReport(options: PdfReportOptions): void {
   autoTable(doc, {
     head: [headers],
     body: tableBody,
-    startY: 33,
-    margin: { left: margin, right: margin },
+    startY: 52,
+    margin: { left: margin, right: margin, bottom: 22 },
     tableWidth: contentW,
     styles: {
       font: "helvetica",
       fontSize: 8,
-      cellPadding: { top: 3.5, bottom: 3.5, left: 4, right: 4 },
+      cellPadding: { top: 3.2, bottom: 3.2, left: 3.5, right: 3.5 },
       lineColor: PALETTE.border,
-      lineWidth: 0.2,
+      lineWidth: 0.15,
       overflow: "linebreak",
     },
     headStyles: {
@@ -179,32 +232,50 @@ export function generatePdfReport(options: PdfReportOptions): void {
       halign: "left",
     },
     columnStyles: {
-      // First column (Register No / ID) — monospace feel
       0: { fontStyle: "bold", cellWidth: "auto" },
     },
     didDrawPage: (data) => {
-      // ── Footer on every page ─────────────────────────────────────────────
       const pageNum = (doc.internal as unknown as { getCurrentPageInfo: () => { pageNumber: number } }).getCurrentPageInfo().pageNumber;
       const totalPages = doc.getNumberOfPages();
 
-      doc.setFillColor(...PALETTE.border);
-      doc.rect(0, pageH - 10, pageW, 10, "F");
+      // Sign-off verification block on the last page
+      if (pageNum === totalPages) {
+        const signY = pageH - 26;
+        doc.setDrawColor(...PALETTE.slate);
+        doc.setLineWidth(0.3);
+
+        // Advisor sign line
+        doc.line(margin + 10, signY, margin + 70, signY);
+        doc.setFontSize(8);
+        doc.setFont("helvetica", "bold");
+        doc.setTextColor(...PALETTE.navy);
+        doc.text("CLASS ADVISOR SIGNATURE", margin + 15, signY + 4);
+
+        // HOD sign line
+        doc.line(margin + 105, signY, margin + 165, signY);
+        doc.text("HEAD OF THE DEPARTMENT", margin + 110, signY + 4);
+
+        // Principal / Cashier sign line
+        doc.line(pageW - margin - 70, signY, pageW - margin - 10, signY);
+        doc.text("PRINCIPAL / CASHIER SEAL", pageW - margin - 65, signY + 4);
+      }
+
+      // Footer
+      doc.setFillColor(...PALETTE.navyLight);
+      doc.rect(0, pageH - 8, pageW, 8, "F");
 
       doc.setFontSize(7);
-      doc.setTextColor(...PALETTE.slate);
+      doc.setTextColor(226, 232, 240);
       doc.setFont("helvetica", "normal");
-      doc.text("VCET — Vcet No Due Clearance Portal · Confidential Academic Document", margin, pageH - 4);
-      doc.text(`Page ${pageNum} of ${totalPages}`, pageW - margin, pageH - 4, { align: "right" });
+      doc.text("VELALAR COLLEGE OF ENGINEERING & TECHNOLOGY — NO DUE CLEARANCE PORTAL (VCET)", margin, pageH - 3);
+      doc.text("CONFIDENTIAL ACADEMIC RECORD · GENERATED AUTOMATICALLY", pageW / 2, pageH - 3, { align: "center" });
+      doc.text(`Page ${pageNum} of ${totalPages}`, pageW - margin, pageH - 3, { align: "right" });
 
-      // Colour accent stripe at bottom
-      doc.setFillColor(...(type === "defaulters" ? PALETTE.red : PALETTE.blue));
-      doc.rect(0, pageH - 10, 3, 10, "F");
-
-      void data; // suppress unused warning
+      void data;
     },
   });
 
-  // ─── Save ─────────────────────────────────────────────────────────────────
+  // 4. Save
   const dateStr = now.toISOString().split("T")[0];
   doc.save(`${filename}-${dateStr}.pdf`);
 }
